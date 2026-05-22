@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { AppError } from "@/lib/errors";
 
-export const GEMINI_MODEL = "gemini-2.5-flash";
+export const GEMINI_MODEL = "gemini-3.1-flash-lite-preview";
 
 let client: GoogleGenAI | null = null;
 
@@ -40,6 +40,7 @@ export async function generateText({ system, prompt }: GenerateTextParams): Prom
     return text;
   } catch (err) {
     if (err instanceof AppError) throw err;
-    throw new AppError(502, "LLM_ERROR", "The AI request failed. Please try again.");
+    const detail = err instanceof Error ? ` (${err.message})` : "";
+    throw new AppError(502, "LLM_ERROR", `The AI request failed. Please try again.${detail}`);
   }
 }
