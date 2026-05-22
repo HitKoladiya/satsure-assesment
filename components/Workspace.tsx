@@ -101,17 +101,23 @@ function isApiError(data: unknown): data is ApiError {
   );
 }
 
+// Send only the last 5 Q&A exchanges (each = one question + its answer) as context.
+const HISTORY_EXCHANGES = 5;
+
 export function Workspace() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   async function handleAsk(question: string) {
     if (!state.document) return;
+    const history = state.messages
+      .slice(-HISTORY_EXCHANGES * 2)
+      .map(({ role, content }) => ({ role, content }));
     dispatch({ type: "ASK_START", question });
     try {
       const res = await fetch("/api/qa", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text: state.document.text, question }),
+        body: JSON.stringify({ text: state.document.text, question, history }),
       });
       const data: unknown = await res.json();
       if (isApiError(data)) {

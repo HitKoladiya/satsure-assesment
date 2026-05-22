@@ -19,6 +19,10 @@ cp .env.example .env
 # 3. Start the dev server
 pnpm dev
 # → http://localhost:3000
+
+# 4. build for production and start
+pnpm build
+pnpm start
 ```
 
 ---
@@ -26,7 +30,7 @@ pnpm dev
 ## How to Use
 
 1. **Upload** a `.txt`, `.md`, or `.pdf` file (max 5 MB).
-2. **Ask questions** in the Q&A panel — answers are grounded strictly in your document.
+2. **Ask questions** in the Q&A panel — answers are grounded strictly in your document. Recent turns are sent back as context, so follow-ups ("rewrite that", "expand the last point") work.
 3. **Generate Summary** — produces an Executive Summary, Key Insights, and Action Items through the Draft → Validate → Retry pipeline. The step-log timeline shows each stage.
 
 ---
@@ -54,7 +58,7 @@ lib/
   errors.ts         AppError class + toErrorResponse
 
 services/
-  qa.ts             build grounded prompt, detect not-found sentinel
+  qa.ts             build grounded prompt (+ recent turns), detect not-found sentinel
   summaryPipeline.ts  Draft → Validate → Retry orchestration, step logs
 
 prompts/
@@ -65,7 +69,7 @@ rules/
   response_rules.md  zero-hallucination + 3 required headers (read at runtime)
 ```
 
-The server is **stateless** — extracted document text lives in client `useReducer` state and is sent as context on each API call. No database.
+The server is **stateless** — extracted document text and recent chat history live in client `useReducer` state and are sent as context on each API call. No database.
 
 ---
 
@@ -90,6 +94,7 @@ If the output never passes validation, the best-effort result is returned with `
 | Stateless server + client `useReducer` | No database or session store needed. Simpler, easier to reason about, fits a single-user tool perfectly. |
 | Prompts/rules as `.md` files read at runtime | Satisfies the assessment requirement; keeps AI instructions readable and editable without touching source code. |
 | Deterministic header check before LLM correction | Saves tokens on the common case (model already complies). Only spends a correction call when genuinely needed. |
+| Low model temperature (default 0.2), set via env-configurable model name | Grounded Q&A and structured summaries favor determinism over creativity — fewer format drifts and hallucinations. Model name is an env var so it can be swapped without code changes. |
 
 ---
 
@@ -98,6 +103,7 @@ If the output never passes validation, the best-effort result is returned with `
 | Variable | Required | Description |
 | --- | --- | --- |
 | `GEMINI_API_KEY` | Yes | Google Gemini API key |
+| `GEMINI_MODEL` | No | Override the Gemini model (default `gemini-3.1-flash-lite-preview`) |
 | `PORT` | No | Dev server port (default 3000) |
 
 See `.env.example`.

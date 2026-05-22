@@ -16,6 +16,9 @@ export interface ChatMessage {
   grounded?: boolean;
 }
 
+// Minimal shape sent to the Q&A endpoint so prior turns give the model context.
+export type QaTurn = Pick<ChatMessage, "role" | "content">;
+
 export interface QaResponse {
   answer: string;
   grounded: boolean;

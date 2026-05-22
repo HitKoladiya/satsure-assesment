@@ -1,9 +1,15 @@
 import { z } from "zod";
 import type { SummarySections } from "@/types";
 
+const chatTurnSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string(),
+});
+
 export const qaRequestSchema = z.object({
   text: z.string().min(1),
   question: z.string().min(1),
+  history: z.array(chatTurnSchema).optional(),
 });
 
 export const summaryRequestSchema = z.object({
@@ -41,7 +47,7 @@ function sliceSection(raw: string, start: string, end: string | null): string {
   return raw.slice(from, endIdx === -1 ? undefined : endIdx);
 }
 
-function toListItems(block: string): string[] {
+export function toListItems(block: string): string[] {
   return block
     .split("\n")
     .map((line) => line.trim())
