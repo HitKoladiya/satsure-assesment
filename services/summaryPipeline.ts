@@ -13,13 +13,19 @@ export async function runSummaryPipeline(text: string): Promise<SummaryResult> {
 
   // Step 1: Draft — load prompts in parallel, generate initial output
   const draftStart = Date.now();
-  const [system, summaryPrompt] = await Promise.all([
+  const [system, summaryPrompt, rules] = await Promise.all([
     loadPrompt("system"),
     loadPrompt("summary"),
+    loadPrompt("responseRules"),
   ]);
   raw = await generateText({
     system,
-    prompt: `${summaryPrompt}\n\nDocument text:\n\n${text}`,
+    prompt: [
+      summaryPrompt,
+      "Output rules:",
+      rules,
+      `Document text:\n\n${text}`,
+    ].join("\n\n"),
   });
   steps.push({
     name: "draft",
@@ -49,7 +55,6 @@ export async function runSummaryPipeline(text: string): Promise<SummaryResult> {
     const retryStart = Date.now();
 
     try {
-      const rules = await loadPrompt("responseRules");
       const correctedRaw = await generateText({
         system,
         prompt: [

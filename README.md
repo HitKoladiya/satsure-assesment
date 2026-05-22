@@ -77,7 +77,7 @@ The server is **stateless** — extracted document text and recent chat history 
 
 The summary endpoint runs a three-step pipeline visible in the UI:
 
-1. **Draft** — Gemini generates the initial summary using `prompts/system.md` + `prompts/summary.md` + the document text.
+1. **Draft** — Gemini generates the initial summary using `prompts/system.md` + `prompts/summary.md` + `rules/response_rules.md` (so the exact format is known upfront) + the document text.
 2. **Validate** — a deterministic header check (`### Executive Summary`, `### Key Insights`, `### Action Items`) runs in 0 ms at zero token cost.
 3. **Retry / Self-correct** — if headers are missing, a second Gemini call receives `rules/response_rules.md` + the broken draft and returns a corrected version. Retries up to 2 times.
 
@@ -93,7 +93,7 @@ If the output never passes validation, the best-effort result is returned with `
 | Parsed dashboard cards, not a markdown renderer | The same section-header parser that powers the UI doubles as the deterministic validation check — no extra dependency. |
 | Stateless server + client `useReducer` | No database or session store needed. Simpler, easier to reason about, fits a single-user tool perfectly. |
 | Prompts/rules as `.md` files read at runtime | Satisfies the assessment requirement; keeps AI instructions readable and editable without touching source code. |
-| Deterministic header check before LLM correction | Saves tokens on the common case (model already complies). Only spends a correction call when genuinely needed. |
+| Format rules sent in the draft, then a deterministic header check before any LLM correction | The model gets the exact `### ` header rules upfront so the draft usually passes first try; the zero-cost check then only triggers a correction call on the rare miss. |
 | Low model temperature (default 0.2), set via env-configurable model name | Grounded Q&A and structured summaries favor determinism over creativity — fewer format drifts and hallucinations. Model name is an env var so it can be swapped without code changes. |
 
 ---

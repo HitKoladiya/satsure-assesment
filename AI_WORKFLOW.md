@@ -35,6 +35,7 @@
 - **Added a temperature control.** The generated client made a flat `generateContent` call with no sampling config. I added a `temperature` parameter (default `0.2`) because the whole app is built on zero-hallucination grounding — a low, near-deterministic temperature reduces format drift in the summary pipeline and keeps Q&A anchored to the document.
 - **Threaded prior conversation into Q&A.** The first cut sent only `{ text, question }`, so each question was answered in isolation. I added a capped history field (`MAX_HISTORY_TURNS`) that the client sends with every question, so follow-ups like "rewrite that" or "expand the last point" resolve against the real conversation.
 - **Frontmatter-stripped the prompt loader.** After versioning the prompt files, I made `loadPrompt` strip the YAML frontmatter so version metadata never leaks into the model context.
+- **Moved the format rules into the draft prompt, not just the retry.** The scaffold only injected `rules/response_rules.md` (which holds the exact `### ` header spec the validator checks) during self-correction — so the first draft was graded against a format it had never been shown, the main cause of avoidable retries. I now load the rules once upfront and include them in the draft, so the model knows the exact format on attempt one and the retry becomes a rare safety net.
 
 ---
 
