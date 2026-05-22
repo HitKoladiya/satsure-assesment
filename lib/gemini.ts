@@ -1,7 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 import { AppError } from "@/lib/errors";
 
-export const GEMINI_MODEL = "gemini-3.1-flash-lite-preview";
+const DEFAULT_MODEL = "gemini-3.1-flash-lite-preview";
+
+// Model is env-configurable so it can be swapped without a code change.
+export const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || DEFAULT_MODEL;
+
 
 let client: GoogleGenAI | null = null;
 
