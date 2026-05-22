@@ -3,6 +3,8 @@
 import { useReducer } from "react";
 import { UploadDropzone } from "@/components/UploadDropzone";
 import { ErrorBanner } from "@/components/ErrorBanner";
+import { ChatPanel } from "@/components/ChatPanel";
+import { SummaryDashboard } from "@/components/SummaryDashboard";
 import type {
   ApiError,
   ChatMessage,
@@ -102,6 +104,46 @@ function isApiError(data: unknown): data is ApiError {
 export function Workspace() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  async function handleAsk(question: string) {
+    if (!state.document) return;
+    dispatch({ type: "ASK_START", question });
+    try {
+      const res = await fetch("/api/qa", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: state.document.text, question }),
+      });
+      const data: unknown = await res.json();
+      if (isApiError(data)) {
+        dispatch({ type: "ERROR", message: (data as ApiError).error.message });
+        return;
+      }
+      dispatch({ type: "ASK_SUCCESS", response: data as QaResponse });
+    } catch {
+      dispatch({ type: "ERROR", message: "Request failed. Please try again." });
+    }
+  }
+
+  async function handleSummary() {
+    if (!state.document) return;
+    dispatch({ type: "SUMMARY_START" });
+    try {
+      const res = await fetch("/api/summary", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: state.document.text }),
+      });
+      const data: unknown = await res.json();
+      if (isApiError(data)) {
+        dispatch({ type: "ERROR", message: (data as ApiError).error.message });
+        return;
+      }
+      dispatch({ type: "SUMMARY_SUCCESS", summary: data as SummaryResult });
+    } catch {
+      dispatch({ type: "ERROR", message: "Request failed. Please try again." });
+    }
+  }
+
   async function handleUpload(file: File) {
     dispatch({ type: "UPLOAD_START" });
     const form = new FormData();
@@ -200,12 +242,22 @@ export function Workspace() {
           )}
         </section>
 
-        {/* Content panels — populated in Phase 7 */}
+        {/* Content panels */}
         {state.document && (
-          <div
-            id="workspace-panels"
-            className="grid grid-cols-1 gap-6 lg:grid-cols-2"
-          />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <ChatPanel
+              messages={state.messages}
+              onAsk={handleAsk}
+              disabled={state.status !== "idle"}
+              isAsking={state.status === "asking"}
+            />
+            <SummaryDashboard
+              summary={state.summary}
+              onGenerate={handleSummary}
+              disabled={state.status !== "idle"}
+              isSummarizing={state.status === "summarizing"}
+            />
+          </div>
         )}
       </div>
     </div>
