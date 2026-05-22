@@ -250,18 +250,18 @@ export function Workspace() {
 
         {/* Content panels */}
         {state.document && (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <ChatPanel
-              messages={state.messages}
-              onAsk={handleAsk}
-              disabled={state.status !== "idle"}
-              isAsking={state.status === "asking"}
-            />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
             <SummaryDashboard
               summary={state.summary}
               onGenerate={handleSummary}
               disabled={state.status !== "idle"}
               isSummarizing={state.status === "summarizing"}
+            />
+            <ChatPanel
+              messages={state.messages}
+              onAsk={handleAsk}
+              disabled={state.status !== "idle"}
+              isAsking={state.status === "asking"}
             />
           </div>
         )}

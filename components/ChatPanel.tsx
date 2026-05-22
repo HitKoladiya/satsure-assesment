@@ -39,8 +39,7 @@ export function ChatPanel({ messages, onAsk, disabled, isAsking }: ChatPanelProp
       {/* Transcript */}
       <div
         ref={transcriptRef}
-        className="flex flex-col gap-3 overflow-y-auto px-5 py-4"
-        style={{ minHeight: "200px", maxHeight: "360px" }}
+        className="flex flex-col gap-3 overflow-y-auto px-5 py-4 min-h-60 max-h-110"
         aria-live="polite"
         aria-label="Conversation transcript"
       >
