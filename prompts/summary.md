@@ -1,3 +1,9 @@
+---
+version: 1.0.0
+updated: 2026-05-23
+purpose: Task instruction for the draft step of the summary pipeline.
+---
+
 # Objective
 Analyze the provided document text and synthesize it into a clean, highly structured, and scannable dashboard payload. 
 

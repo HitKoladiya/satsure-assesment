@@ -10,11 +10,17 @@ const FILES: Record<PromptName, string> = {
 
 const cache = new Map<PromptName, string>();
 
+// Drop the leading YAML frontmatter (version metadata) so it never reaches the model.
+function stripFrontmatter(raw: string): string {
+  return raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "").trimStart();
+}
+
 export async function loadPrompt(name: PromptName): Promise<string> {
   const cached = cache.get(name);
   if (cached) return cached;
 
-  const text = await readFile(join(process.cwd(), FILES[name]), "utf8");
+  const raw = await readFile(join(process.cwd(), FILES[name]), "utf8");
+  const text = stripFrontmatter(raw);
   cache.set(name, text);
   return text;
 }
