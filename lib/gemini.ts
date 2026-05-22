@@ -6,6 +6,8 @@ const DEFAULT_MODEL = "gemini-3.1-flash-lite-preview";
 // Model is env-configurable so it can be swapped without a code change.
 export const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || DEFAULT_MODEL;
 
+// Low default keeps grounded answers focused; callers may override per request.
+export const DEFAULT_TEMPERATURE = 0.2;
 
 let client: GoogleGenAI | null = null;
 
@@ -27,15 +29,20 @@ function getClient(): GoogleGenAI {
 export interface GenerateTextParams {
   system: string;
   prompt: string;
+  temperature?: number;
 }
 
-export async function generateText({ system, prompt }: GenerateTextParams): Promise<string> {
+export async function generateText({
+  system,
+  prompt,
+  temperature = DEFAULT_TEMPERATURE,
+}: GenerateTextParams): Promise<string> {
   const ai = getClient();
   try {
     const response = await ai.models.generateContent({
       model: GEMINI_MODEL,
       contents: prompt,
-      config: { systemInstruction: system },
+      config: { systemInstruction: system, temperature },
     });
     const text = response.text;
     if (!text || !text.trim()) {
